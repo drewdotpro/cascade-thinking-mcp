@@ -1,0 +1,57 @@
+{
+  "name": "cascade-thinking-mcp",
+  "version": "1.0.0",
+  "description": "A Structured Reasoning Framework for AI Agents featuring cascade thinking and structured problem solving",
+  "license": "MIT",
+  "author": "Drew Llewellyn",
+  "homepage": "https://github.com/drewdotpro/cascade-thinking-mcp#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drewdotpro/cascade-thinking-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/drewdotpro/cascade-thinking-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "cascade-thinking",
+    "reasoning",
+    "problem-solving",
+    "ai-agents"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "cascade-thinking-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "postbuild": "node -e \"import { exec } from 'child_process'; if (process.platform !== 'win32') { exec('chmod +x dist/*.js'); }\"",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --max-warnings 0",
+    "lint:fix": "eslint --fix --max-warnings 0",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "check": "npm run typecheck && npm run lint:fix && npm run test:coverage"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.16.0",
+    "chalk": "^5.4.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "@types/node": "^24.0.15",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.31.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.37.0",
+    "vitest": "^3.2.4"
+  }
+}
