@@ -29,7 +29,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "prebuild": "node -e \"import { rmSync } from 'fs'; try { rmSync('./dist', { recursive: true }); } catch {}\"",
+    "build": "tsc -p tsconfig.build.json",
     "postbuild": "node -e \"import { exec } from 'child_process'; if (process.platform !== 'win32') { exec('chmod +x dist/*.js'); }\"",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
