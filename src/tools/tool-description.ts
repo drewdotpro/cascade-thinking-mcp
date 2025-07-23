@@ -2,6 +2,9 @@ export const CASCADE_THINKING_TOOL_DESCRIPTION = `A detailed tool for dynamic an
 This tool helps analyze problems through a flexible thinking process that can adapt and evolve.
 Each thought can build on, question, or revise previous insights as understanding deepens.
 
+IMPORTANT: This tool maintains a continuous thought history throughout the entire conversation.
+All previous thoughts, branches, and thinking sequences remain accessible for revision or branching.
+
 When to use this tool:
 - Breaking down complex problems into steps
 - Planning and design with room for revision
@@ -32,17 +35,21 @@ Parameters explained:
   * Hypothesis generation
   * Hypothesis verification
 - next_thought_needed: True if you need more thinking, even if at what seemed like the end
-- thought_number: Current number in sequence (can go beyond initial total if needed)
+- thought_number: Current number in sequence (resets to 1 each new invocation, can go beyond initial total if needed)
 - total_thoughts: Current estimate of thoughts needed (can be adjusted up/down)
 - is_revision: A boolean indicating if this thought revises previous thinking
-- revises_thought: If is_revision is true, which thought number is being reconsidered
-- branch_from_thought: If branching, which thought number is the branching point
+- revises_thought: If is_revision is true, which thought number FROM THE ENTIRE HISTORY is being reconsidered
+- branch_from_thought: If branching, which thought number FROM THE ENTIRE HISTORY is the branching point
 - branch_id: Identifier for the current branch (if any)
 - needs_more_thoughts: If reaching end but realizing more thoughts needed
 
+Response includes:
+- thoughtHistoryLength: Total number of thoughts across ALL invocations in the conversation
+- branches: Accumulated list of ALL branches created throughout the conversation
+
 You should:
 1. Start with an initial estimate of needed thoughts, but be ready to adjust
-2. Feel free to question or revise previous thoughts
+2. Feel free to question or revise previous thoughts (referencing their absolute position in history)
 3. Don't hesitate to add more thoughts if needed, even at the "end"
 4. Express uncertainty when present
 5. Mark thoughts that revise previous thinking or branch into new paths
@@ -51,4 +58,5 @@ You should:
 8. Verify the hypothesis based on the Chain of Thought steps
 9. Repeat the process until satisfied with the solution
 10. Provide a single, ideally correct answer as the final output
-11. Only set next_thought_needed to false when truly done and a satisfactory answer is reached`;
+11. Only set next_thought_needed to false when truly done and a satisfactory answer is reached
+12. Be aware that when you start a new cascade thinking after completing one, you're continuing the same thought history`;
