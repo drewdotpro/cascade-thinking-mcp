@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CascadeThinkingServer } from './cascade-thinking-server.js';
+import { CascadeThinkingResponse, SequenceMetadata } from '../types/thought.js';
 
 describe('CascadeThinkingServer - True Branching', () => {
   let server: CascadeThinkingServer;
@@ -41,7 +42,7 @@ describe('CascadeThinkingServer - True Branching', () => {
     expect(data2.currentSequence.summary).toContain('Branch: OAuth instead of API keys');
     expect(data2.availableBranches).toBeDefined();
     expect(data2.availableBranches).toHaveLength(2); // main + alt-approach
-    const altBranch = data2.availableBranches.find((b: any) => b.branchId === 'alt-approach');
+    const altBranch = data2.availableBranches.find(b => b.branchId === 'alt-approach');
     expect(altBranch).toBeDefined();
     expect(altBranch.branchId).toBe('alt-approach');
   });
@@ -80,11 +81,11 @@ describe('CascadeThinkingServer - True Branching', () => {
       responseMode: 'verbose'  // Get verbose output to check context
     });
 
-    const data = JSON.parse(result.content[0].text);
+    const data = JSON.parse(result.content[0].text) as CascadeThinkingResponse;
     
     // Find the branch sequence
-    const branchSequence = data.sequenceHistory.find(
-      (seq: any) => seq.parentBranchId === 'alternative'
+    const branchSequence = data.sequenceHistory?.find(
+      seq => seq.parentBranchId === 'alternative'
     );
     
     expect(branchSequence).toBeDefined();
@@ -141,7 +142,7 @@ describe('CascadeThinkingServer - True Branching', () => {
       switchToBranch: 'branch-1'
     });
 
-    const data = JSON.parse(result.content[0].text);
+    const data = JSON.parse(result.content[0].text) as CascadeThinkingResponse;
     expect(data.currentBranch).toBe('branch-1');
     expect(data.thoughtNumber).toBe('S2');
     expect(data.availableBranches).toHaveLength(3); // main + branch-1 + branch-2
@@ -167,7 +168,7 @@ describe('CascadeThinkingServer - True Branching', () => {
       branchDescription: 'Exploring OAuth approach'
     });
 
-    const data = JSON.parse(result.content[0].text);
+    const data = JSON.parse(result.content[0].text) as CascadeThinkingResponse;
     expect(data.hint).toContain("On branch 'oauth-branch'");
     expect(data.hint).toContain('Exploring OAuth approach');
     expect(data.hint).toContain('Branches: oauth-branch');
@@ -183,7 +184,7 @@ describe('CascadeThinkingServer - True Branching', () => {
     });
 
     expect(result.isError).toBe(true);
-    const error = JSON.parse(result.content[0].text);
+    const error = JSON.parse(result.content[0].text) as { error: string; status: string };
     expect(error.error).toContain("Branch 'non-existent' does not exist");
   });
 
@@ -269,7 +270,7 @@ describe('CascadeThinkingServer - True Branching', () => {
       switchToBranch: 'main'
     });
 
-    const data = JSON.parse(result.content[0].text);
+    const data = JSON.parse(result.content[0].text) as CascadeThinkingResponse;
     expect(data.branches).toBeDefined();
     expect(data.branches['test-branch']).toBeDefined();
     expect(data.branches['test-branch'].description).toBe('Testing branching');
@@ -300,11 +301,11 @@ describe('CascadeThinkingServer - True Branching', () => {
     });
 
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0].text);
+    const data = JSON.parse(result.content[0].text) as CascadeThinkingResponse;
     
     // Check sequence history for branch context
     expect(data.sequenceHistory).toBeDefined();
-    const branchSequence = data.sequenceHistory.find((seq: any) => seq.parentBranchId === 'test-branch');
+    const branchSequence = data.sequenceHistory?.find(seq => seq.parentBranchId === 'test-branch');
     expect(branchSequence).toBeDefined();
     expect(branchSequence.branchContext).toBeDefined();
     expect(branchSequence.branchContext[0]).toBeDefined();
@@ -390,17 +391,17 @@ describe('CascadeThinkingServer - True Branching', () => {
       switchToBranch: 'main'
     });
 
-    const data = JSON.parse(result.content[0].text);
+    const data = JSON.parse(result.content[0].text) as CascadeThinkingResponse;
     expect(data.availableBranches).toBeDefined();
     expect(data.availableBranches).toHaveLength(2); // main + branch-1
     
     // Find main branch info
-    const mainBranch = data.availableBranches.find((b: any) => b.branchId === 'main');
+    const mainBranch = data.availableBranches?.find(b => b.branchId === 'main');
     expect(mainBranch).toBeDefined();
     expect(mainBranch.expectedThoughtNumber).toBe('S4'); // Main has S1, S2, S3, so next is S4
     
     // Find branch-1 info
-    const branch1 = data.availableBranches.find((b: any) => b.branchId === 'branch-1');
+    const branch1 = data.availableBranches?.find(b => b.branchId === 'branch-1');
     expect(branch1).toBeDefined();
     expect(branch1.expectedThoughtNumber).toBe('S3'); // Branch-1 has S1, S2, so next is S3
   });
@@ -432,7 +433,7 @@ describe('CascadeThinkingServer - True Branching', () => {
       switchToBranch: 'main'
     });
 
-    const data = JSON.parse(result.content[0].text);
+    const data = JSON.parse(result.content[0].text) as CascadeThinkingResponse;
     expect(result.isError).toBeUndefined();
     expect(data.thoughtNumber).toBe('S2'); // Should auto-calculate as S2
     expect(data.currentBranch).toBe('main');
@@ -559,8 +560,34 @@ describe('CascadeThinkingServer - True Branching', () => {
     });
 
     expect(result.isError).toBe(true);
-    const error = JSON.parse(result.content[0].text);
+    const error = JSON.parse(result.content[0].text) as { error: string; status: string };
     expect(error.error).toContain('Invalid thought number: expected S2');
+  });
+
+  it('should provide helpful error message when using wrong thought number for branch creation', () => {
+    // Create initial thought
+    server.processThought({
+      thought: 'Main thought',
+      thoughtNumber: 'S1',
+      totalThoughts: 3,
+      nextThoughtNeeded: true
+    });
+
+    // Try to create branch with wrong thought number
+    const result = server.processThought({
+      thought: 'Branch with wrong number',
+      thoughtNumber: 'S2', // Should be S1 for new branch
+      totalThoughts: 2,
+      nextThoughtNeeded: true,
+      branchFromThought: 'A1',
+      branchId: 'test-branch'
+    });
+
+    expect(result.isError).toBe(true);
+    const error = JSON.parse(result.content[0].text) as { error: string; status: string };
+    expect(error.error).toContain('when creating a branch, use S1');
+    expect(error.error).toContain('not S2');
+    expect(error.error).toContain('Branches automatically start a new sequence');
   });
 
   it('should handle missing sequence counters gracefully', () => {
@@ -595,11 +622,11 @@ describe('CascadeThinkingServer - True Branching', () => {
       responseMode: 'standard'
     });
 
-    const data = JSON.parse(result.content[0].text);
+    const data = JSON.parse(result.content[0].text) as CascadeThinkingResponse;
     expect(data.availableBranches).toBeDefined();
     
     // All branches should have valid expectedThoughtNumber even if counter was missing
-    data.availableBranches.forEach((branch: any) => {
+    data.availableBranches?.forEach(branch => {
       expect(branch.expectedThoughtNumber).toMatch(/^S\d+$/);
     });
   });
@@ -664,7 +691,7 @@ describe('CascadeThinkingServer - True Branching', () => {
       responseMode: 'verbose'
     });
 
-    const data = JSON.parse(result.content[0].text);
+    const data = JSON.parse(result.content[0].text) as CascadeThinkingResponse;
     
     
     // Should have branch data in verbose mode

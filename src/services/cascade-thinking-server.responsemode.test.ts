@@ -238,7 +238,7 @@ describe('CascadeThinkingServer - Response Mode Control', () => {
       });
 
       expect(result.isError).toBe(true);
-      const error = JSON.parse(result.content[0].text);
+      const error = JSON.parse(result.content[0].text) as { error: string; status: string };
       expect(error.error).toBe('responseMode must be one of: minimal, standard, verbose');
     });
 

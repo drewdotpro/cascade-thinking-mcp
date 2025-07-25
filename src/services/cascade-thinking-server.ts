@@ -452,7 +452,12 @@ export class CascadeThinkingServer {
       } else {
         // For direct users, validate the thought number matches expected
         if (validatedInput.thoughtNumber !== expectedThoughtNumber) {
-          throw new Error(`Invalid thought number: expected S${expectedThoughtNumber} for current sequence, but got S${validatedInput.thoughtNumber}`);
+          // Provide more helpful error message for branch creation
+          const isBranchCreation = validatedInput.branchFromThought && validatedInput.branchId;
+          const errorMessage = isBranchCreation
+            ? `Invalid thought number: when creating a branch, use S1 (not S${validatedInput.thoughtNumber}). Branches automatically start a new sequence with numbering reset to S1.`
+            : `Invalid thought number: expected S${expectedThoughtNumber} for current sequence, but got S${validatedInput.thoughtNumber}`;
+          throw new Error(errorMessage);
         }
       }
 

@@ -78,6 +78,7 @@ The magic happens when performance insights (branch 1) reveal why certain securi
 - branchFromThought: "S2" or "A5" - Your launching point
 - branchId: "approach-name" - Name this exploration path
 - branchDescription: What you're investigating
+Branches automatically start a new sequence at S1!
 
 **🔄 REVISIONS** - Evolving Insights
 - revisesThought: "S2" or "A7" - Which insight to refine
