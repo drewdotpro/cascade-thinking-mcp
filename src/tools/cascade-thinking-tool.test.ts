@@ -37,9 +37,9 @@ describe('CASCADE_THINKING_TOOL', () => {
     });
     
     expect(properties.thoughtNumber).toEqual({
-      type: 'integer',
-      description: 'Current thought number',
-      minimum: 1
+      type: 'string',
+      description: 'Current thought number with S prefix (e.g., \'S1\', \'S2\', \'S3\')',
+      pattern: '^S\\d+$'
     });
     
     expect(properties.totalThoughts).toEqual({
@@ -55,15 +55,15 @@ describe('CASCADE_THINKING_TOOL', () => {
     });
     
     expect(properties.revisesThought).toEqual({
-      type: 'integer',
-      description: 'Which thought is being reconsidered',
-      minimum: 1
+      type: 'string',
+      description: "Reference to revise: A{n} for absolute, S{n} for sequence-relative (e.g., 'A47', 'S3')",
+      pattern: '^[AaSs]\\d+$'
     });
     
     expect(properties.branchFromThought).toEqual({
-      type: 'integer',
-      description: 'Branching point thought number',
-      minimum: 1
+      type: 'string',
+      description: "Reference to branch from: A{n} for absolute, S{n} for sequence-relative (e.g., 'A23', 'S5')",
+      pattern: '^[AaSs]\\d+$'
     });
     
     expect(properties.branchId).toEqual({
@@ -75,15 +75,58 @@ describe('CASCADE_THINKING_TOOL', () => {
       type: 'boolean',
       description: 'If more thoughts are needed'
     });
+    
+    expect(properties.startNewSequence).toEqual({
+      type: 'boolean',
+      description: 'Explicitly start a new thinking sequence'
+    });
+    
+    expect(properties.sequenceDescription).toEqual({
+      type: 'string',
+      description: 'Description of what this sequence will explore'
+    });
+    
+    expect(properties.branchDescription).toEqual({
+      type: 'string',
+      description: 'Description of this branch\'s purpose'
+    });
+    
+    expect(properties.toolSource).toEqual({
+      type: 'string',
+      description: 'Identifies which tool is using cascade_thinking (e.g., \'user\', \'agent\', \'task\')'
+    });
+    
+    expect(properties.isolatedContext).toEqual({
+      type: 'boolean',
+      description: 'Use isolated state for this tool instead of shared global state'
+    });
+    
+    expect(properties.switchToBranch).toEqual({
+      type: 'string',
+      description: 'Resume work on a specific branch by its ID'
+    });
+    
+    expect(properties.recentThoughtsLimit).toEqual({
+      type: 'integer',
+      description: 'How many recent thoughts to include in response (default: 5, max: 100)',
+      minimum: 0,
+      maximum: 100
+    });
+    
+    expect(properties.responseMode).toEqual({
+      type: 'string',
+      description: 'Control response verbosity: minimal (essentials only), standard (default, balanced), verbose (full details)',
+      enum: ['minimal', 'standard', 'verbose']
+    });
   });
 
-  it('should have exactly 9 properties defined', () => {
+  it('should have exactly 18 properties defined', () => {
     const { properties } = CASCADE_THINKING_TOOL.inputSchema;
     
     if (!properties) {
       throw new Error('Properties should be defined');
     }
     
-    expect(Object.keys(properties)).toHaveLength(9);
+    expect(Object.keys(properties)).toHaveLength(18);
   });
 });

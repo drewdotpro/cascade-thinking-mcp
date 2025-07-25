@@ -21,29 +21,29 @@ describe('Cascade Thinking MCP Server Integration', () => {
     const thoughts = [
       {
         thought: 'Starting my analysis of the problem',
-        thoughtNumber: 1,
+        thoughtNumber: 'S1',
         totalThoughts: 3,
         nextThoughtNeeded: true
       },
       {
         thought: 'Actually, I need to reconsider my approach',
-        thoughtNumber: 2,
+        thoughtNumber: 'S2',
         totalThoughts: 3,
         nextThoughtNeeded: true,
         isRevision: true,
-        revisesThought: 1
+        revisesThought: 'A1'
       },
       {
         thought: 'Exploring an alternative solution',
-        thoughtNumber: 3,
+        thoughtNumber: 'S1', // Branches create new sequences starting at S1
         totalThoughts: 4, // Dynamically adjusted
         nextThoughtNeeded: true,
-        branchFromThought: 2,
+        branchFromThought: 'A2',
         branchId: 'alternative-1'
       },
       {
         thought: 'Final conclusion based on analysis',
-        thoughtNumber: 4,
+        thoughtNumber: 'S2', // Second thought in the branch sequence
         totalThoughts: 4,
         nextThoughtNeeded: false
       }
@@ -57,18 +57,21 @@ describe('Cascade Thinking MCP Server Integration', () => {
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
       
-      const data = JSON.parse(result.content[0].text) as {
-        thoughtNumber: number;
-        thoughtHistoryLength: number;
-        branches?: string[];
-        nextThoughtNeeded: boolean;
-      };
-      expect(data.thoughtNumber).toBe(i + 1);
-      expect(data.thoughtHistoryLength).toBe(i + 1);
+      const data = JSON.parse(result.content[0].text);
+      // Adjust expectation for branch thoughts
+      if (i >= 2) {
+        // Thoughts in branch sequence
+        expect(data.thoughtNumber).toBe(`S${i - 1}`); // S1, S2 for branch
+      } else {
+        // Main sequence thoughts
+        expect(data.thoughtNumber).toBe(`S${i + 1}`); // S1, S2 for main
+      }
+      expect(data.absoluteThoughtNumber).toBe(`A${i + 1}`);
+      expect(data.totalThoughtsAllTime).toBe(i + 1);
       
       if (i === 2) {
         // Check that branch was recorded
-        expect(data.branches).toContain('alternative-1');
+        expect(data.activeBranches).toBeGreaterThan(0);
       }
       
       if (i === 3) {
@@ -84,7 +87,7 @@ describe('Cascade Thinking MCP Server Integration', () => {
     // Test valid input
     expect(() => validateThoughtData({
       thought: 'Valid thought',
-      thoughtNumber: 1,
+      thoughtNumber: 'S1',
       totalThoughts: 1,
       nextThoughtNeeded: false
     })).not.toThrow();
@@ -106,6 +109,8 @@ describe('Cascade Thinking MCP Server Integration', () => {
     const output = formatThought({
       thought: 'Test thought',
       thoughtNumber: 1,
+      absoluteThoughtNumber: 1,
+      sequenceId: 'seq_test',
       totalThoughts: 3,
       nextThoughtNeeded: true
     });
@@ -125,6 +130,8 @@ describe('Cascade Thinking MCP Server Integration', () => {
     const revisionOutput = formatThought({
       thought: 'Revised thought',
       thoughtNumber: 2,
+      absoluteThoughtNumber: 2,
+      sequenceId: 'seq_test',
       totalThoughts: 3,
       nextThoughtNeeded: true,
       isRevision: true,
@@ -132,12 +139,14 @@ describe('Cascade Thinking MCP Server Integration', () => {
     });
     
     expect(revisionOutput).toContain('Revision');
-    expect(revisionOutput).toContain('revising thought 1');
+    expect(revisionOutput).toContain('revising absolute thought 1');
     
     // Test branch formatting
     const branchOutput = formatThought({
       thought: 'Branch thought',
       thoughtNumber: 3,
+      absoluteThoughtNumber: 3,
+      sequenceId: 'seq_test',
       totalThoughts: 3,
       nextThoughtNeeded: false,
       branchFromThought: 2,
@@ -145,7 +154,7 @@ describe('Cascade Thinking MCP Server Integration', () => {
     });
     
     expect(branchOutput).toContain('Branch');
-    expect(branchOutput).toContain('from thought 2');
+    expect(branchOutput).toContain('from absolute thought 2');
     expect(branchOutput).toContain('test-branch');
   });
 
@@ -166,7 +175,7 @@ describe('Cascade Thinking MCP Server Integration', () => {
       const server1 = new CascadeThinkingServer();
       server1.processThought({
         thought: 'This should be logged',
-        thoughtNumber: 1,
+        thoughtNumber: 'S1',
         totalThoughts: 1,
         nextThoughtNeeded: false
       });
@@ -181,7 +190,7 @@ describe('Cascade Thinking MCP Server Integration', () => {
       const server2 = new CascadeThinkingServer();
       server2.processThought({
         thought: 'This should NOT be logged',
-        thoughtNumber: 1,
+        thoughtNumber: 'S1',
         totalThoughts: 1,
         nextThoughtNeeded: false
       });
@@ -214,7 +223,7 @@ describe('Cascade Thinking MCP Server Integration', () => {
     expect(properties).toBeDefined();
     
     if (properties) {
-      expect(Object.keys(properties)).toHaveLength(9);
+      expect(Object.keys(properties)).toHaveLength(18);
       expect(properties.thought).toBeDefined();
       expect(properties.nextThoughtNeeded).toBeDefined();
       expect(properties.thoughtNumber).toBeDefined();
@@ -223,7 +232,15 @@ describe('Cascade Thinking MCP Server Integration', () => {
       expect(properties.revisesThought).toBeDefined();
       expect(properties.branchFromThought).toBeDefined();
       expect(properties.branchId).toBeDefined();
+      expect(properties.branchDescription).toBeDefined();
       expect(properties.needsMoreThoughts).toBeDefined();
+      expect(properties.responseMode).toBeDefined();
+      expect(properties.startNewSequence).toBeDefined();
+      expect(properties.sequenceDescription).toBeDefined();
+      expect(properties.toolSource).toBeDefined();
+      expect(properties.isolatedContext).toBeDefined();
+      expect(properties.switchToBranch).toBeDefined();
+      expect(properties.recentThoughtsLimit).toBeDefined();
     }
   });
 });

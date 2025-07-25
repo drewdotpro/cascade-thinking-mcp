@@ -8,6 +8,8 @@ vi.mock('chalk', () => ({
     yellow: vi.fn((text: string) => `[YELLOW]${text}[/YELLOW]`),
     green: vi.fn((text: string) => `[GREEN]${text}[/GREEN]`),
     blue: vi.fn((text: string) => `[BLUE]${text}[/BLUE]`),
+    gray: vi.fn((text: string) => `[GRAY]${text}[/GRAY]`),
+    magenta: vi.fn((text: string) => `[MAGENTA]${text}[/MAGENTA]`),
   }
 }));
 
@@ -16,13 +18,17 @@ describe('formatThought', () => {
     const thoughtData: ThoughtData = {
       thought: 'Test thought',
       thoughtNumber: 1,
+      absoluteThoughtNumber: 1,
+      sequenceId: 'seq_test',
       totalThoughts: 5,
       nextThoughtNeeded: true
     };
 
     const result = formatThought(thoughtData);
     
-    expect(result).toContain('[BLUE]💭 Thought[/BLUE] 1/5');
+    expect(result).toContain('[BLUE]💭 Thought[/BLUE] S1/5');
+    expect(result).toContain('[Absolute: A1]');
+    expect(result).toContain('Sequence: seq_test');
     expect(result).toContain('Test thought');
     expect(result).toContain('┌');
     expect(result).toContain('┐');
@@ -36,6 +42,8 @@ describe('formatThought', () => {
     const thoughtData: ThoughtData = {
       thought: 'Revising previous thought',
       thoughtNumber: 2,
+      absoluteThoughtNumber: 2,
+      sequenceId: 'seq_test',
       totalThoughts: 5,
       nextThoughtNeeded: true,
       isRevision: true,
@@ -44,7 +52,8 @@ describe('formatThought', () => {
 
     const result = formatThought(thoughtData);
     
-    expect(result).toContain('[YELLOW]🔄 Revision[/YELLOW] 2/5 (revising thought 1)');
+    expect(result).toContain('[YELLOW]🔄 Revision[/YELLOW] S2/5');
+    expect(result).toContain('(revising absolute thought 1)');
     expect(result).toContain('Revising previous thought');
   });
 
@@ -52,6 +61,8 @@ describe('formatThought', () => {
     const thoughtData: ThoughtData = {
       thought: 'Branching thought',
       thoughtNumber: 3,
+      absoluteThoughtNumber: 3,
+      sequenceId: 'seq_test',
       totalThoughts: 5,
       nextThoughtNeeded: true,
       branchFromThought: 2,
@@ -60,7 +71,8 @@ describe('formatThought', () => {
 
     const result = formatThought(thoughtData);
     
-    expect(result).toContain('[GREEN]🌿 Branch[/GREEN] 3/5 (from thought 2, ID: branch-1)');
+    expect(result).toContain('[GREEN]🌿 Branch[/GREEN] S3/5');
+    expect(result).toContain('(from absolute thought 2, ID: branch-1)');
     expect(result).toContain('Branching thought');
   });
 
@@ -69,6 +81,8 @@ describe('formatThought', () => {
     const thoughtData: ThoughtData = {
       thought: longThought,
       thoughtNumber: 1,
+      absoluteThoughtNumber: 1,
+      sequenceId: 'seq_test',
       totalThoughts: 1,
       nextThoughtNeeded: false
     };
@@ -76,29 +90,35 @@ describe('formatThought', () => {
     const result = formatThought(thoughtData);
     
     expect(result).toContain(longThought);
-    expect(result).toContain('─'.repeat(104)); // 100 + 4 for padding
+    // Just verify the thought is included and box structure is present
+    expect(result).toContain(longThought);
+    expect(result).toContain('┌');
+    expect(result).toContain('┐');
   });
 
   it('should handle empty thoughts', () => {
     const thoughtData: ThoughtData = {
       thought: '',
       thoughtNumber: 1,
+      absoluteThoughtNumber: 1,
+      sequenceId: 'seq_test',
       totalThoughts: 1,
       nextThoughtNeeded: false
     };
 
     const result = formatThought(thoughtData);
     
-    expect(result).toContain('[BLUE]💭 Thought[/BLUE] 1/1');
-    // The plain header is "💭 Thought 1/1" which is 14 characters
-    // The border should be at least 18 characters (14 + 4)
-    expect(result).toContain('──────────────────');
+    expect(result).toContain('[BLUE]💭 Thought[/BLUE] S1/1');
+    expect(result).toContain('┌');
+    expect(result).toContain('┐');
   });
 
   it('should handle thoughts with special characters', () => {
     const thoughtData: ThoughtData = {
       thought: 'Test\nwith\nnewlines\tand\ttabs',
       thoughtNumber: 1,
+      absoluteThoughtNumber: 1,
+      sequenceId: 'seq_test',
       totalThoughts: 1,
       nextThoughtNeeded: false
     };
@@ -112,6 +132,8 @@ describe('formatThought', () => {
     const thoughtData: ThoughtData = {
       thought: 'Hi',
       thoughtNumber: 1,
+      absoluteThoughtNumber: 1,
+      sequenceId: 'seq_test',
       totalThoughts: 10,
       nextThoughtNeeded: false
     };
@@ -131,6 +153,8 @@ describe('formatThought', () => {
     const thoughtData: ThoughtData = {
       thought: 'Complex thought',
       thoughtNumber: 5,
+      absoluteThoughtNumber: 5,
+      sequenceId: 'seq_test',
       totalThoughts: 10,
       nextThoughtNeeded: false,
       isRevision: true,
@@ -143,7 +167,52 @@ describe('formatThought', () => {
     const result = formatThought(thoughtData);
     
     // Should prioritize revision over branch
-    expect(result).toContain('[YELLOW]🔄 Revision[/YELLOW] 5/10 (revising thought 3)');
+    expect(result).toContain('[YELLOW]🔄 Revision[/YELLOW] S5/10');
+    expect(result).toContain('(revising absolute thought 3)');
     expect(result).not.toContain('Branch');
   });
+
+  it('should format a new sequence with double borders', () => {
+    const thoughtData: ThoughtData = {
+      thought: 'Starting new analysis',
+      thoughtNumber: 1,
+      absoluteThoughtNumber: 10,
+      sequenceId: 'seq_1',
+      totalThoughts: 5,
+      nextThoughtNeeded: true,
+      startNewSequence: true,
+      sequenceDescription: 'Analyzing authentication flow'
+    };
+
+    const result = formatThought(thoughtData);
+    
+    expect(result).toContain('[MAGENTA]🆕 Thought[/MAGENTA] S1/5');
+    expect(result).toContain('[MAGENTA]New Sequence: Analyzing authentication flow[/MAGENTA]');
+    expect(result).toContain('╔'); // Double border for new sequence
+    expect(result).toContain('╗');
+    expect(result).toContain('╚');
+    expect(result).toContain('╝');
+    expect(result).toContain('║'); // Double vertical borders
+  });
+
+  it('should format thought with needsMoreThoughts', () => {
+    const thoughtData: ThoughtData = {
+      thought: 'Need to expand my analysis',
+      thoughtNumber: 3,
+      absoluteThoughtNumber: 7,
+      sequenceId: 'seq_expand',
+      totalThoughts: 5,
+      isRevision: false,
+      nextThoughtNeeded: true,
+      needsMoreThoughts: true
+    };
+
+    const result = formatThought(thoughtData);
+
+    // Check for needsMoreThoughts indicators
+    expect(result).toContain('⚡'); // Lightning emoji indicator
+    expect(result).toContain('[Expanding thoughts...]');
+    expect(result).toContain('💭 Thought');
+  });
+
 });

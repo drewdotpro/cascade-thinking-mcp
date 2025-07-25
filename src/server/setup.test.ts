@@ -84,7 +84,7 @@ describe('Server Setup', () => {
           name: 'cascade_thinking',
           arguments: {
             thought: 'Test',
-            thoughtNumber: 1,
+            thoughtNumber: 'S1',
             totalThoughts: 1,
             nextThoughtNeeded: false
           }
@@ -96,8 +96,8 @@ describe('Server Setup', () => {
       expect(result.isError).toBeUndefined();
       expect(result.content[0].type).toBe('text');
       const textContent = result.content[0] as TextContent;
-      const data = JSON.parse(textContent.text) as { thoughtNumber: number };
-      expect(data.thoughtNumber).toBe(1);
+      const data = JSON.parse(textContent.text) as { thoughtNumber: string };
+      expect(data.thoughtNumber).toBe('S1'); // S-prefixed string
     });
 
     it('should handle CallToolRequest for unknown tool', () => {
