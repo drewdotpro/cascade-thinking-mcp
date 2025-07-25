@@ -323,8 +323,8 @@ Retrieve specific thoughts:
 
 For long sequences (more than 10 thoughts), the tool automatically generates summaries in standard and verbose response modes:
 
+Response includes sequence summary:
 ```json
-// Response includes sequence summary
 {
   "thoughtNumber": "S15",
   "absoluteThoughtNumber": "A47",
@@ -336,7 +336,7 @@ For long sequences (more than 10 thoughts), the tool automatically generates sum
     "thoughtsInSequence": 15
   },
   "sequenceSummary": "Key revisions: 2 thoughts revised | Branches created: oauth-flow, jwt-impl | Expanded thinking 1 time(s) | Progress: 75% (15/20)",
-  "recentThoughts": [/* ... */]
+  "recentThoughts": []
 }
 ```
 
@@ -442,37 +442,48 @@ The response includes:
 
 ### Example Branching Workflow
 
+Main exploration:
 ```json
-// Main exploration
-{ "thought": "Analyzing authentication options", "thoughtNumber": "S1", ... }
+{ "thought": "Analyzing authentication options", "thoughtNumber": "S1", "totalThoughts": 3, "nextThoughtNeeded": true }
+```
 
-// Branch to explore OAuth
+Branch to explore OAuth (resets to S1 in new sequence):
+```json
 { 
   "thought": "Let me explore OAuth specifically",
-  "thoughtNumber": "S1",  // Resets to S1 in new sequence
+  "thoughtNumber": "S1",
   "branchFromThought": "A1",
   "branchId": "oauth-exploration",
-  "branchDescription": "Deep dive into OAuth implementation"
+  "branchDescription": "Deep dive into OAuth implementation",
+  "totalThoughts": 4,
+  "nextThoughtNeeded": true
 }
+```
 
-// Continue in OAuth branch
-{ "thought": "OAuth would require...", "thoughtNumber": "S2", ... }
+Continue in OAuth branch:
+```json
+{ "thought": "OAuth would require...", "thoughtNumber": "S2", "totalThoughts": 4, "nextThoughtNeeded": true }
+```
 
-// Switch back to main without specifying thoughtNumber
+Switch back to main without specifying thoughtNumber (automatically calculated as S2):
+```json
 { 
   "thought": "Now let me consider API keys",
   "totalThoughts": 3,
   "nextThoughtNeeded": true,
   "switchToBranch": "main"
-  // thoughtNumber is automatically calculated as S2
 }
+```
 
-// Create another branch
+Create another branch (new sequence again):
+```json
 {
   "thought": "Exploring API key approach",
-  "thoughtNumber": "S1",  // New sequence again
+  "thoughtNumber": "S1",
   "branchFromThought": "A1",
-  "branchId": "api-keys"
+  "branchId": "api-keys",
+  "totalThoughts": 3,
+  "nextThoughtNeeded": true
 }
 ```
 
@@ -578,7 +589,9 @@ If you need separate state for a specific tool, use `isolatedContext: true`:
   "thought": "Private analysis for this tool only",
   "toolSource": "specialized_agent",
   "isolatedContext": true,
-  ...
+  "thoughtNumber": "S1",
+  "totalThoughts": 5,
+  "nextThoughtNeeded": true
 }
 ```
 
@@ -589,19 +602,19 @@ This creates a completely separate thinking context that won't interfere with th
 When spawning multiple agents or tasks, **you MUST provide unique identifiers** to distinguish between different instances. Without unique identification, thoughts from different agents will be interleaved in confusing ways.
 
 **Correct usage:**
+Each agent MUST have a unique identifier:
 ```json
-// Each agent MUST have a unique identifier
-{ "toolSource": "agent:auth-researcher", ... }
-{ "toolSource": "agent:db-analyzer", ... }
-{ "toolSource": "task:validator-1", ... }
-{ "toolSource": "task:validator-2", ... }
+{ "toolSource": "agent:auth-researcher", "thought": "Researching auth methods", "thoughtNumber": "S1", "totalThoughts": 3, "nextThoughtNeeded": true }
+{ "toolSource": "agent:db-analyzer", "thought": "Analyzing database schema", "thoughtNumber": "S1", "totalThoughts": 4, "nextThoughtNeeded": true }
+{ "toolSource": "task:validator-1", "thought": "Validating input data", "thoughtNumber": "S1", "totalThoughts": 2, "nextThoughtNeeded": true }
+{ "toolSource": "task:validator-2", "thought": "Checking output format", "thoughtNumber": "S1", "totalThoughts": 2, "nextThoughtNeeded": true }
 ```
 
 **Incorrect usage:**
+DON'T DO THIS - multiple agents with same identifier:
 ```json
-// DON'T DO THIS - multiple agents with same identifier
-{ "toolSource": "agent", ... }  // Agent A
-{ "toolSource": "agent", ... }  // Agent B - will be confused with Agent A!
+{ "toolSource": "agent", "thought": "Agent A thinking", "thoughtNumber": "S1", "totalThoughts": 3, "nextThoughtNeeded": true }
+{ "toolSource": "agent", "thought": "Agent B thinking", "thoughtNumber": "S1", "totalThoughts": 3, "nextThoughtNeeded": true }
 ```
 
 ### Benefits of Shared Context
@@ -633,14 +646,18 @@ The cascade thinking tool's dual numbering system enables powerful cross-sequenc
 
 When you discover something in one investigation that relates to another:
 
+Sequence 1: Security Analysis
 ```json
-// Sequence 1: Security Analysis
 { "thought": "Found XSS vulnerability in user input handling", "thoughtNumber": "S4", "totalThoughts": 6, "nextThoughtNeeded": false }
+```
 
-// Sequence 2: Code Review (started later)
+Sequence 2: Code Review (started later)
+```json
 { "thought": "Reviewing input validation functions", "thoughtNumber": "S1", "startNewSequence": true, "sequenceDescription": "Code review", "totalThoughts": 5, "nextThoughtNeeded": true }
+```
 
-// Connect back to security finding
+Connect back to security finding:
+```json
 { "thought": "This validation gap directly relates to the XSS vulnerability (A4)", "thoughtNumber": "S2", "revisesThought": "A4", "isRevision": true, "totalThoughts": 5, "nextThoughtNeeded": true }
 ```
 
@@ -648,11 +665,13 @@ When you discover something in one investigation that relates to another:
 
 Reference and extend earlier work without losing context:
 
+Earlier conclusion (A15):
 ```json
-// Earlier conclusion (A15)
 { "thought": "Database queries are the performance bottleneck", "thoughtNumber": "S5", "totalThoughts": 5, "nextThoughtNeeded": false }
+```
 
-// New sequence building on this
+New sequence building on this:
+```json
 { "thought": "Starting optimization based on bottleneck analysis (A15)", "thoughtNumber": "S1", "startNewSequence": true, "sequenceDescription": "Performance optimization", "totalThoughts": 8, "nextThoughtNeeded": true }
 ```
 
@@ -660,8 +679,8 @@ Reference and extend earlier work without losing context:
 
 After exploring alternatives, reference insights from different branches:
 
+After exploring multiple authentication approaches:
 ```json
-// After exploring multiple authentication approaches
 { "thought": "Comparing the three approaches: Sessions (A3-A8), OAuth (A9-A14), and JWT (A15-A19), sessions offer the best balance", "thoughtNumber": "S1", "startNewSequence": true, "sequenceDescription": "Final recommendation", "totalThoughts": 3, "nextThoughtNeeded": true }
 ```
 
