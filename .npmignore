@@ -1,0 +1,19 @@
+# Since package.json "files" field restricts to "dist" folder only,
+# this .npmignore just ensures certain files are excluded if they
+# accidentally end up in dist during build
+
+# Test files that might end up in dist
+*.test.js
+*.test.d.ts
+*.spec.js
+*.spec.d.ts
+
+# Source maps (if we generate them)
+*.map
+
+# TypeScript config files
+tsconfig*.json
+
+# Any accidental source files
+*.ts
+!*.d.ts

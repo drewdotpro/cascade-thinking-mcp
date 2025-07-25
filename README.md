@@ -93,16 +93,18 @@ Control verbosity with `responseMode`: minimal for speed, standard for balance, 
 
 ## 💫 See It In Action
 
+Start exploring:
 ```json
-// Start exploring
 {
   "thought": "Analyzing authentication options for our API",
   "thoughtNumber": "S1",
   "totalThoughts": 3,
   "nextThoughtNeeded": true
 }
+```
 
-// Branch to explore OAuth
+Branch to explore OAuth:
+```json
 {
   "thought": "Let me explore OAuth2 implementation",
   "thoughtNumber": "S1",
@@ -111,8 +113,10 @@ Control verbosity with `responseMode`: minimal for speed, standard for balance, 
   "totalThoughts": 4,
   "nextThoughtNeeded": true
 }
+```
 
-// Later, switch back and try another approach
+Later, switch back and try another approach:
+```json
 {
   "thought": "Now exploring JWT tokens",
   "switchToBranch": "main",
@@ -183,23 +187,29 @@ When you set `needsMoreThoughts: true`, the tool:
 
 ### Example Usage
 
+Initial estimate was 3 thoughts:
 ```json
-// Initial estimate was 3 thoughts
 { "thought": "Starting analysis", "thoughtNumber": "S1", "totalThoughts": 3, "nextThoughtNeeded": true }
+```
 
-// Continuing...
+Continuing:
+```json
 { "thought": "This is getting complex", "thoughtNumber": "S2", "totalThoughts": 3, "nextThoughtNeeded": true }
+```
 
-// Realize you need more thoughts
+Realize you need more thoughts (expands to S3 + 3 = 6 total):
+```json
 {
   "thought": "I need to explore this deeper than expected",
   "thoughtNumber": "S3",
   "totalThoughts": 3,
-  "needsMoreThoughts": true,  // Expands to S3 + 3 = 6 total
+  "needsMoreThoughts": true,
   "nextThoughtNeeded": true
 }
+```
 
-// Continue with expanded total
+Continue with expanded total:
+```json
 { "thought": "Now I can continue deeper analysis", "thoughtNumber": "S4", "totalThoughts": 6, "nextThoughtNeeded": true }
 ```
 
@@ -220,32 +230,36 @@ The `recentThoughtsLimit` parameter allows you to control how many recent though
 
 **Default Behavior**: By default, the tool includes the 5 most recent thoughts in every response.
 
+Get more context (show last 10 thoughts):
 ```json
-// Get more context
 {
   "thought": "Need to see more history",
   "thoughtNumber": "S10",
   "totalThoughts": 15,
   "nextThoughtNeeded": true,
-  "recentThoughtsLimit": 10  // Show last 10 thoughts
+  "recentThoughtsLimit": 10
 }
+```
 
-// Reduce response size
+Reduce response size (show only the most recent thought):
+```json
 {
   "thought": "Working with limited bandwidth",
   "thoughtNumber": "S5",
   "totalThoughts": 5,
   "nextThoughtNeeded": false,
-  "recentThoughtsLimit": 1  // Show only the most recent thought
+  "recentThoughtsLimit": 1
 }
+```
 
-// Exclude recent thoughts entirely
+Exclude recent thoughts entirely:
+```json
 {
   "thought": "Don't need context",
   "thoughtNumber": "S3",
   "totalThoughts": 3,
   "nextThoughtNeeded": false,
-  "recentThoughtsLimit": 0  // No recent thoughts
+  "recentThoughtsLimit": 0
 }
 ```
 
@@ -255,41 +269,47 @@ The `recentThoughtsLimit` parameter allows you to control how many recent though
 
 The `retrieveThoughts` parameter allows you to fetch specific thoughts using various patterns:
 
+Retrieve last N thoughts:
 ```json
-// Retrieve last N thoughts
 {
   "thought": "Review recent conclusions",
   "thoughtNumber": "S15",
   "totalThoughts": 20,
   "nextThoughtNeeded": true,
-  "retrieveThoughts": "last:8"  // Get last 8 thoughts
+  "retrieveThoughts": "last:8"
 }
+```
 
-// Retrieve absolute range
+Retrieve absolute range (A5 through A10):
+```json
 {
   "thought": "Check early analysis",
   "thoughtNumber": "S20",
   "totalThoughts": 25,
   "nextThoughtNeeded": true,
-  "retrieveThoughts": "A5-A10"  // Get thoughts A5 through A10
+  "retrieveThoughts": "A5-A10"
 }
+```
 
-// Retrieve sequence range (from current sequence)
+Retrieve sequence range from current sequence (S10 through S15):
+```json
 {
   "thought": "Review middle section",
   "thoughtNumber": "S30",
   "totalThoughts": 35,
   "nextThoughtNeeded": true,
-  "retrieveThoughts": "S10-S15"  // Get thoughts S10 through S15
+  "retrieveThoughts": "S10-S15"
 }
+```
 
-// Retrieve specific thoughts
+Retrieve specific thoughts:
+```json
 {
   "thought": "Check key decisions",
   "thoughtNumber": "S40",
   "totalThoughts": 45,
   "nextThoughtNeeded": false,
-  "retrieveThoughts": "A3,A17,A29"  // Get specific thoughts
+  "retrieveThoughts": "A3,A17,A29"
 }
 ```
 
@@ -355,8 +375,8 @@ The `responseMode` parameter allows you to control how much information is inclu
 
 ### Examples
 
+Minimal mode for quick checks:
 ```json
-// Minimal mode for quick checks
 {
   "thought": "Quick status check",
   "thoughtNumber": "S5",
@@ -364,16 +384,20 @@ The `responseMode` parameter allows you to control how much information is inclu
   "nextThoughtNeeded": true,
   "responseMode": "minimal"
 }
+```
 
-// Standard mode (default - no need to specify)
+Standard mode (default - no need to specify):
+```json
 {
   "thought": "Continuing analysis",
   "thoughtNumber": "S6",
   "totalThoughts": 8,
   "nextThoughtNeeded": true
 }
+```
 
-// Verbose mode for full context
+Verbose mode for full context:
+```json
 {
   "thought": "Need complete overview",
   "thoughtNumber": "S7",
