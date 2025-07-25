@@ -1,20 +1,132 @@
+![Cascade Thinking MCP Server banner](https://raw.githubusercontent.com/drewdotpro/cascade-thinking-mcp/main/assets/banner.jpg)
+
 # Cascade Thinking MCP Server
 
-An MCP server implementation that provides a tool for dynamic and reflective problem-solving through a structured cascade thinking process.
+**Transform linear problem-solving into rich, multi-dimensional exploration with true branching and intelligent thought management.**
 
-## Features
+[![npm version](https://img.shields.io/npm/v/cascade-thinking-mcp?style=flat-square)](https://www.npmjs.com/package/cascade-thinking-mcp)
+[![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
+![status](https://img.shields.io/badge/status-active-brightgreen?style=flat-square)
+![type](https://img.shields.io/badge/type-MCP_Server-blue?style=flat-square)
 
-- Break down complex problems into manageable steps
-- Revise and refine thoughts as understanding deepens
-- **True branching** that creates separate exploration paths
-- Navigate between branches to resume different lines of reasoning
-- Adjust the total number of thoughts dynamically
-- Generate and verify solution hypotheses
-- **Dual numbering system** with sequence-relative and absolute thought references
+## ⚡ Why Cascade Thinking?
 
-## Tool
+Traditional problem-solving tools break under ambiguity.  
+**Cascade Thinking MCP** lets you _branch_, _revise_, and _expand_ your reasoning process without losing structure.
 
-### cascade_thinking
+✅ **Explore alternatives** with true branching that creates separate sequences  
+✅ **Revise previous thoughts** with full traceability via dual numbering  
+✅ **Maintain context** across agents and tools with persistent state  
+✅ **Expand dynamically** when you discover complexity mid-exploration  
+
+## 🚀 Quick Start
+
+### Install in 10 seconds
+
+**VS Code**:
+For quick installation, click one of the installation buttons below...
+
+[![Install with NPX in VS Code](https://img.shields.io/badge/VS_Code-NPM-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=cascade-thinking&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22cascade-thinking-mcp%22%5D%7D) [![Install with NPX in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-NPM-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=cascade-thinking&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22cascade-thinking-mcp%22%5D%7D&quality=insiders)
+
+[![Install with Docker in VS Code](https://img.shields.io/badge/VS_Code-Docker-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=cascade-thinking&config=%7B%22command%22%3A%22docker%22%2C%22args%22%3A%5B%22run%22%2C%22--rm%22%2C%22-i%22%2C%22mcp%2Fcascade-thinking%22%5D%7D) [![Install with Docker in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Docker-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=cascade-thinking&config=%7B%22command%22%3A%22docker%22%2C%22args%22%3A%5B%22run%22%2C%22--rm%22%2C%22-i%22%2C%22mcp%2Fcascade-thinking%22%5D%7D&quality=insiders)
+
+**Claude Desktop / Claude Code**: See [Configuration](#configuration) for setup instructions.
+
+## 💬 Using the MCP Server
+
+Once installed, prompt Claude to use the cascade thinking tool for complex tasks:
+
+> "You have access to the cascade thinking MCP for complex tasks like this. Use its full features including branching, revision, and dynamic expansion to explore this problem thoroughly."
+
+The tool works best when you:
+- 🎯 **Be explicit** - Ask Claude to use cascade thinking for multi-step analysis
+- 🌿 **Encourage branching** - Suggest exploring alternatives in parallel
+- 🔄 **Allow revisions** - Let Claude update thoughts as understanding evolves
+- 📈 **Enable expansion** - Claude can use `needsMoreThoughts` when discovering complexity
+
+**Example prompts:**
+- "Use cascade thinking to analyze these authentication options, branching to explore each approach"
+- "Think through this step-by-step with cascade thinking, revising your understanding as you go"
+- "Explore this problem with cascade thinking, creating branches for different solutions"
+
+## 🧠 How It Works
+
+> **Transform linear thinking into multi-dimensional exploration**
+
+```
+Main Path:    S1/A1 ─→ S2/A2 ─→ S3/A3 ─→ S4/A7
+                         │         │
+                         ↓         ↓
+Branch 1:          S1/A4 ─→ S2/A5  │
+                              │    │
+                              ↓    │
+Sub-branch:              S1/A6     │
+                                   │
+Branch 2:                     S1/A8 ─→ S2/A9
+```
+
+**The magic:** Each thought has dual coordinates
+- `S{n}` = Position in current sequence (resets per branch)
+- `A{n}` = Absolute position across all thoughts (never resets)
+
+This enables:
+- ✨ **Precise references**: `revisesThought: "A23"`
+- 🌿 **Context-aware branching**: `branchFromThought: "S2"`
+- 🚀 **Instant navigation**: `switchToBranch: "oauth-exploration"`
+
+## 🧩 Key Features
+
+### 🌿 True Branching
+Create separate exploration paths that automatically start new sequences. Each branch maintains its own context while preserving connections to the parent.
+
+### 🔄 Thought Revision
+Update earlier insights as understanding evolves. Full revision history with both S{n} and A{n} references.
+
+### 💡 Dynamic Expansion
+Realize mid-exploration that you need more depth? Use `needsMoreThoughts` to expand your thinking space by 50% or at least 3 more thoughts.
+
+### 🔗 Multi-Tool Integration
+Persistent state across tools with `toolSource` tracking. Share context between agents or isolate with `isolatedContext`.
+
+### 📊 Flexible Output
+Control verbosity with `responseMode`: minimal for speed, standard for balance, verbose for debugging.
+
+## 💫 See It In Action
+
+```json
+// Start exploring
+{
+  "thought": "Analyzing authentication options for our API",
+  "thoughtNumber": "S1",
+  "totalThoughts": 3,
+  "nextThoughtNeeded": true
+}
+
+// Branch to explore OAuth
+{
+  "thought": "Let me explore OAuth2 implementation",
+  "thoughtNumber": "S1",
+  "branchFromThought": "A1",
+  "branchId": "oauth-exploration",
+  "totalThoughts": 4,
+  "nextThoughtNeeded": true
+}
+
+// Later, switch back and try another approach
+{
+  "thought": "Now exploring JWT tokens",
+  "switchToBranch": "main",
+  "thoughtNumber": "S2",
+  "totalThoughts": 3,
+  "nextThoughtNeeded": true
+}
+```
+
+---
+
+## 📖 Complete Documentation
+
+### Tool Reference: cascade_thinking
 
 Facilitates a detailed, step-by-step thinking process for problem-solving and analysis with a unique dual numbering system.
 
@@ -556,9 +668,9 @@ The Cascade Thinking tool is designed for:
 
 ## Configuration
 
-### Usage with Claude Desktop
+### Usage with Claude Desktop / Claude Code
 
-Add this to your `claude_desktop_config.json`:
+Add this to your `claude_desktop_config.json` (for Claude desktop) or `.mcp.json` in your project folder (for Claude Code):
 
 #### npx
 
@@ -597,12 +709,6 @@ Add this to your `claude_desktop_config.json`:
 To disable logging of thought information set env var: `DISABLE_THOUGHT_LOGGING` to `true`.
 
 ### Usage with VS Code
-
-For quick installation, click one of the installation buttons below...
-
-[![Install with NPX in VS Code](https://img.shields.io/badge/VS_Code-NPM-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=cascade-thinking&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22cascade-thinking-mcp%22%5D%7D) [![Install with NPX in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-NPM-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=cascade-thinking&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22cascade-thinking-mcp%22%5D%7D&quality=insiders)
-
-[![Install with Docker in VS Code](https://img.shields.io/badge/VS_Code-Docker-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=cascade-thinking&config=%7B%22command%22%3A%22docker%22%2C%22args%22%3A%5B%22run%22%2C%22--rm%22%2C%22-i%22%2C%22mcp%2Fcascade-thinking%22%5D%7D) [![Install with Docker in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Docker-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=cascade-thinking&config=%7B%22command%22%3A%22docker%22%2C%22args%22%3A%5B%22run%22%2C%22--rm%22%2C%22-i%22%2C%22mcp%2Fcascade-thinking%22%5D%7D&quality=insiders)
 
 For manual installation, add the following JSON block to your User Settings (JSON) file in VS Code. You can do this by pressing `Ctrl + Shift + P` and typing `Preferences: Open Settings (JSON)`.
 
