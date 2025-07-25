@@ -1,4 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// Mock the server module before importing index to prevent actual server startup
+vi.mock('./server/setup.js', () => ({
+  runServer: vi.fn().mockResolvedValue(undefined),
+  createServer: vi.fn()
+}));
 
 describe('index.ts exports', () => {
   it('should export all necessary functions and classes', async () => {

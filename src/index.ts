@@ -2,14 +2,12 @@
 
 import { runServer } from './server/setup.js';
 
-// Only run server if this is the main module
+// Run the server immediately, like other MCP servers do
 /* c8 ignore start */
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runServer().catch((error: unknown) => {
-    console.error("Fatal error running server:", error);
-    process.exit(1);
-  });
-}
+runServer().catch((error: unknown) => {
+  console.error("Fatal error running server:", error);
+  process.exit(1);
+});
 /* c8 ignore stop */
 
 // Export for testing
