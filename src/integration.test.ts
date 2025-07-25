@@ -216,7 +216,7 @@ describe('Cascade Thinking MCP Server Integration', () => {
     // Verify the schema
     const schema = CASCADE_THINKING_TOOL.inputSchema;
     expect(schema.type).toBe('object');
-    expect(schema.required).toEqual(['thought', 'nextThoughtNeeded', 'thoughtNumber', 'totalThoughts']);
+    expect(schema.required).toEqual(['thought', 'nextThoughtNeeded', 'totalThoughts']);
     
     // Verify all properties are defined
     const properties = schema.properties;

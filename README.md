@@ -298,9 +298,11 @@ Use the `switchToBranch` parameter to navigate between branches:
 - `switchToBranch: "main"` - Return to the main (original) sequence
 - `switchToBranch: "feature-x"` - Switch to a specific branch by its ID
 
+**New Feature**: When using `switchToBranch`, the `thoughtNumber` parameter is now optional. The tool will automatically calculate the correct next thought number for the target branch.
+
 The response includes:
 - `currentBranch` - Shows which branch you're currently on
-- `availableBranches` - Lists all branches with their descriptions and thought counts
+- `availableBranches` - Lists all branches with their descriptions, thought counts, and expected next thought number
 
 ### Example Branching Workflow
 
@@ -320,11 +322,13 @@ The response includes:
 // Continue in OAuth branch
 { "thought": "OAuth would require...", "thoughtNumber": "S2", ... }
 
-// Switch back to main to explore another option
+// Switch back to main without specifying thoughtNumber
 { 
   "thought": "Now let me consider API keys",
-  "thoughtNumber": "S2",
+  "totalThoughts": 3,
+  "nextThoughtNeeded": true,
   "switchToBranch": "main"
+  // thoughtNumber is automatically calculated as S2
 }
 
 // Create another branch
@@ -362,12 +366,13 @@ The tool provides clear visibility into your current branch state and available 
 - In minimal mode: Only shown when on non-main branch (auto-enhancement)
 
 #### availableBranches Field
-- Lists all branches with:
-  - `branchId`: The branch identifier
+- Lists all branches (including main) with:
+  - `branchId`: The branch identifier (or "main" for the main sequence)
   - `description`: Optional branch description
   - `thoughtCount`: Number of thoughts on that branch
   - `fromThought`: Where the branch originated (e.g., "A23")
-- Only included when at least one branch exists
+  - `expectedThoughtNumber`: The next thought number if you switch to this branch (e.g., "S3")
+- Always included in standard/verbose modes when branches exist
 
 ### Branch-Aware Hints
 
@@ -384,16 +389,25 @@ Hints dynamically show branch context:
   "currentBranch": "auth-exploration",
   "availableBranches": [
     {
+      "branchId": "main",
+      "description": "Main sequence",
+      "thoughtCount": 5,
+      "fromThought": "A1",
+      "expectedThoughtNumber": "S6"
+    },
+    {
       "branchId": "auth-exploration",
       "description": "OAuth2 implementation",
       "thoughtCount": 3,
-      "fromThought": "A5"
+      "fromThought": "A5",
+      "expectedThoughtNumber": "S4"
     },
     {
       "branchId": "api-keys",
       "description": "Simple API key auth",
       "thoughtCount": 2,
-      "fromThought": "A5"
+      "fromThought": "A5",
+      "expectedThoughtNumber": "S3"
     }
   ],
   "hint": "On branch 'auth-exploration' (OAuth2 implementation) with 3 thoughts - Authentication analysis | Branches: auth-exploration(3), api-keys(2)"

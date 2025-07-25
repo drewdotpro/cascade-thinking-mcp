@@ -146,13 +146,38 @@ export class CascadeThinkingServer {
     return currentSeq.parentBranchId ?? 'main';
   }
 
-  private getAvailableBranches(): {branchId: string; description?: string; thoughtCount: number; fromThought: string}[] {
-    return Object.values(this.branches).map(branch => ({
-      branchId: branch.branchId,
-      description: branch.description,
-      thoughtCount: branch.thoughtsInBranch,
-      fromThought: `A${branch.fromAbsoluteThought}`
-    }));
+  private getAvailableBranches(): {branchId: string; description?: string; thoughtCount: number; fromThought: string; expectedThoughtNumber: string}[] {
+    const branches: {branchId: string; description?: string; thoughtCount: number; fromThought: string; expectedThoughtNumber: string}[] = [];
+    
+    // Add main branch info
+    const mainSeq = Object.values(this.sequences).find(seq => !seq.parentBranchId);
+    if (mainSeq) {
+      const mainThoughtCount = this.sequenceThoughtCounters[mainSeq.id] || /* c8 ignore next */ 0;
+      branches.push({
+        branchId: 'main',
+        description: 'Main sequence',
+        thoughtCount: mainSeq.totalThoughts,
+        fromThought: 'A1',
+        expectedThoughtNumber: `S${mainThoughtCount + 1}`
+      });
+    }
+    
+    // Add all other branches
+    Object.values(this.branches).forEach(branch => {
+      const sequenceId = branch.currentSequenceId;
+      const sequenceThoughtCount = this.sequenceThoughtCounters[sequenceId] || /* c8 ignore next */ 0;
+      const expectedThoughtNumber = sequenceThoughtCount + 1;
+      
+      branches.push({
+        branchId: branch.branchId,
+        description: branch.description,
+        thoughtCount: branch.thoughtsInBranch,
+        fromThought: `A${branch.fromAbsoluteThought}`,
+        expectedThoughtNumber: `S${expectedThoughtNumber}`
+      });
+    });
+    
+    return branches;
   }
 
   private generateBranchTree(): string {
@@ -417,8 +442,12 @@ export class CascadeThinkingServer {
       const currentSequenceCount = this.sequenceThoughtCounters[sequenceId] || 0;
       const expectedThoughtNumber = currentSequenceCount + 1;
       
-      // For tools (non-user), auto-correct the thought number
-      if (validatedInput.toolSource && validatedInput.toolSource !== 'user') {
+      // Handle thoughtNumber based on context
+      if (validatedInput.thoughtNumber === 0 && validatedInput.switchToBranch) {
+        // thoughtNumber was not provided with switchToBranch - auto-calculate
+        validatedInput.thoughtNumber = expectedThoughtNumber;
+      } else if (validatedInput.toolSource && validatedInput.toolSource !== 'user') {
+        // For tools (non-user), auto-correct the thought number
         validatedInput.thoughtNumber = expectedThoughtNumber;
       } else {
         // For direct users, validate the thought number matches expected

@@ -17,7 +17,7 @@ export const CASCADE_THINKING_TOOL: Tool = {
       },
       thoughtNumber: {
         type: "string",
-        description: "Current thought number with S prefix (e.g., 'S1', 'S2', 'S3')",
+        description: "Current thought number with S prefix (e.g., 'S1', 'S2', 'S3'). Optional when switchToBranch is provided - will be auto-calculated.",
         pattern: "^S\\d+$",
       },
       totalThoughts: {
@@ -88,6 +88,6 @@ export const CASCADE_THINKING_TOOL: Tool = {
         enum: ["minimal", "standard", "verbose"],
       },
     },
-    required: ["thought", "nextThoughtNeeded", "thoughtNumber", "totalThoughts"],
+    required: ["thought", "nextThoughtNeeded", "totalThoughts"],
   },
 };

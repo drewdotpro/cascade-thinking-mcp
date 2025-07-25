@@ -40,8 +40,10 @@ describe('CascadeThinkingServer - True Branching', () => {
     expect(data2.currentBranch).toBe('alt-approach');
     expect(data2.currentSequence.summary).toContain('Branch: OAuth instead of API keys');
     expect(data2.availableBranches).toBeDefined();
-    expect(data2.availableBranches).toHaveLength(1);
-    expect(data2.availableBranches[0].branchId).toBe('alt-approach');
+    expect(data2.availableBranches).toHaveLength(2); // main + alt-approach
+    const altBranch = data2.availableBranches.find((b: any) => b.branchId === 'alt-approach');
+    expect(altBranch).toBeDefined();
+    expect(altBranch.branchId).toBe('alt-approach');
   });
 
   it('should copy context when creating a branch', () => {
@@ -142,7 +144,7 @@ describe('CascadeThinkingServer - True Branching', () => {
     const data = JSON.parse(result.content[0].text);
     expect(data.currentBranch).toBe('branch-1');
     expect(data.thoughtNumber).toBe('S2');
-    expect(data.availableBranches).toHaveLength(2);
+    expect(data.availableBranches).toHaveLength(3); // main + branch-1 + branch-2
   });
 
   it('should show branch info in hints', () => {
@@ -343,6 +345,263 @@ describe('CascadeThinkingServer - True Branching', () => {
     const data = JSON.parse(result2.content[0].text);
     expect(data.currentBranch).toBe('agent-branch');
     expect(data.totalSequences).toBe(2);  // Two sequences in isolated context
+  });
+
+  it('should include expectedThoughtNumber in availableBranches', () => {
+    // Create main sequence with two thoughts
+    server.processThought({
+      thought: 'Main 1',
+      thoughtNumber: 'S1',
+      totalThoughts: 3,
+      nextThoughtNeeded: true
+    });
+
+    server.processThought({
+      thought: 'Main 2',
+      thoughtNumber: 'S2',
+      totalThoughts: 3,
+      nextThoughtNeeded: true
+    });
+
+    // Create a branch with one thought
+    server.processThought({
+      thought: 'Branch 1 thought 1',
+      thoughtNumber: 'S1',
+      totalThoughts: 2,
+      nextThoughtNeeded: true,
+      branchFromThought: 'A1',
+      branchId: 'branch-1'
+    });
+
+    // Continue on branch to add another thought
+    server.processThought({
+      thought: 'Branch 1 thought 2',
+      thoughtNumber: 'S2',
+      totalThoughts: 2,
+      nextThoughtNeeded: false
+    });
+
+    // Switch to main and check availableBranches
+    const result = server.processThought({
+      thought: 'Check available branches',
+      thoughtNumber: 'S3',
+      totalThoughts: 3,
+      nextThoughtNeeded: false,
+      switchToBranch: 'main'
+    });
+
+    const data = JSON.parse(result.content[0].text);
+    expect(data.availableBranches).toBeDefined();
+    expect(data.availableBranches).toHaveLength(2); // main + branch-1
+    
+    // Find main branch info
+    const mainBranch = data.availableBranches.find((b: any) => b.branchId === 'main');
+    expect(mainBranch).toBeDefined();
+    expect(mainBranch.expectedThoughtNumber).toBe('S4'); // Main has S1, S2, S3, so next is S4
+    
+    // Find branch-1 info
+    const branch1 = data.availableBranches.find((b: any) => b.branchId === 'branch-1');
+    expect(branch1).toBeDefined();
+    expect(branch1.expectedThoughtNumber).toBe('S3'); // Branch-1 has S1, S2, so next is S3
+  });
+
+  it('should accept thoughts without thoughtNumber when switching branches', () => {
+    // Create main thought
+    server.processThought({
+      thought: 'Main 1',
+      thoughtNumber: 'S1',
+      totalThoughts: 2,
+      nextThoughtNeeded: true
+    });
+
+    // Create a branch
+    server.processThought({
+      thought: 'Branch 1',
+      thoughtNumber: 'S1',
+      totalThoughts: 2,
+      nextThoughtNeeded: true,
+      branchFromThought: 'A1',
+      branchId: 'branch-1'
+    });
+
+    // Switch back to main WITHOUT providing thoughtNumber
+    const result = server.processThought({
+      thought: 'Back to main without thoughtNumber',
+      totalThoughts: 2,
+      nextThoughtNeeded: false,
+      switchToBranch: 'main'
+    });
+
+    const data = JSON.parse(result.content[0].text);
+    expect(result.isError).toBeUndefined();
+    expect(data.thoughtNumber).toBe('S2'); // Should auto-calculate as S2
+    expect(data.currentBranch).toBe('main');
+  });
+
+  it('should auto-calculate correct thoughtNumber when switching between branches', () => {
+    // Create main sequence with thoughts
+    server.processThought({
+      thought: 'Main 1',
+      thoughtNumber: 'S1',
+      totalThoughts: 3,
+      nextThoughtNeeded: true
+    });
+
+    server.processThought({
+      thought: 'Main 2',
+      thoughtNumber: 'S2',
+      totalThoughts: 3,
+      nextThoughtNeeded: true
+    });
+
+    // Create branch-1 with different progress
+    server.processThought({
+      thought: 'Branch 1 start',
+      thoughtNumber: 'S1',
+      totalThoughts: 4,
+      nextThoughtNeeded: true,
+      branchFromThought: 'A1',
+      branchId: 'branch-1'
+    });
+
+    server.processThought({
+      thought: 'Branch 1 continue',
+      thoughtNumber: 'S2',
+      totalThoughts: 4,
+      nextThoughtNeeded: true
+    });
+
+    server.processThought({
+      thought: 'Branch 1 more',
+      thoughtNumber: 'S3',
+      totalThoughts: 4,
+      nextThoughtNeeded: true
+    });
+
+    // Create branch-2 with just one thought
+    server.processThought({
+      thought: 'Branch 2 start',
+      thoughtNumber: 'S1',
+      totalThoughts: 2,
+      nextThoughtNeeded: true,
+      branchFromThought: 'A2',
+      branchId: 'branch-2',
+      switchToBranch: 'main' // First switch to main
+    });
+
+    // Now switch between branches without thoughtNumber
+    // Switch to branch-1 (has S1, S2, S3, so next is S4)
+    const result1 = server.processThought({
+      thought: 'Continue branch 1 without number',
+      totalThoughts: 4,
+      nextThoughtNeeded: false,
+      switchToBranch: 'branch-1'
+    });
+
+    expect(result1.isError).toBeUndefined();
+    const data1 = JSON.parse(result1.content[0].text);
+    expect(data1.thoughtNumber).toBe('S4');
+    expect(data1.currentBranch).toBe('branch-1');
+
+    // Switch to branch-2 (has S1, so next is S2)
+    const result2 = server.processThought({
+      thought: 'Continue branch 2 without number',
+      totalThoughts: 2,
+      nextThoughtNeeded: false,
+      switchToBranch: 'branch-2'
+    });
+
+    expect(result2.isError).toBeUndefined();
+    const data2 = JSON.parse(result2.content[0].text);
+    expect(data2.thoughtNumber).toBe('S2');
+    expect(data2.currentBranch).toBe('branch-2');
+
+    // Switch to main (has S1, S2, so next is S3)
+    const result3 = server.processThought({
+      thought: 'Back to main without number',
+      totalThoughts: 3,
+      nextThoughtNeeded: false,
+      switchToBranch: 'main'
+    });
+
+    expect(result3.isError).toBeUndefined();
+    const data3 = JSON.parse(result3.content[0].text);
+    expect(data3.thoughtNumber).toBe('S3');
+    expect(data3.currentBranch).toBe('main');
+  });
+
+  it('should still validate thoughtNumber if provided with switchToBranch', () => {
+    // Create main thought
+    server.processThought({
+      thought: 'Main 1',
+      thoughtNumber: 'S1',
+      totalThoughts: 2,
+      nextThoughtNeeded: true
+    });
+
+    // Create branch
+    server.processThought({
+      thought: 'Branch 1',
+      thoughtNumber: 'S1',
+      totalThoughts: 2,
+      nextThoughtNeeded: true,
+      branchFromThought: 'A1',
+      branchId: 'branch-1'
+    });
+
+    // Try to switch to main with wrong thoughtNumber
+    const result = server.processThought({
+      thought: 'Wrong number',
+      thoughtNumber: 'S5', // Main only has S1, so S2 is expected
+      totalThoughts: 2,
+      nextThoughtNeeded: false,
+      switchToBranch: 'main'
+    });
+
+    expect(result.isError).toBe(true);
+    const error = JSON.parse(result.content[0].text);
+    expect(error.error).toContain('Invalid thought number: expected S2');
+  });
+
+  it('should handle missing sequence counters gracefully', () => {
+    // This test covers the edge case where sequenceThoughtCounters might not have an entry
+    const server = new CascadeThinkingServer();
+    
+    // Create initial thought
+    server.processThought({
+      thought: 'Main',
+      thoughtNumber: 'S1',
+      totalThoughts: 1,
+      nextThoughtNeeded: true
+    });
+
+    // Create a branch
+    server.processThought({
+      thought: 'Branch',
+      thoughtNumber: 'S1',
+      totalThoughts: 1,
+      nextThoughtNeeded: false,
+      branchFromThought: 'A1',
+      branchId: 'test-branch'
+    });
+
+    // Get availableBranches - this should handle missing counters gracefully
+    const result = server.processThought({
+      thought: 'Check branches',
+      thoughtNumber: 'S2',
+      totalThoughts: 2,
+      nextThoughtNeeded: false,
+      switchToBranch: 'main',
+      responseMode: 'standard'
+    });
+
+    const data = JSON.parse(result.content[0].text);
+    expect(data.availableBranches).toBeDefined();
+    
+    // All branches should have valid expectedThoughtNumber even if counter was missing
+    data.availableBranches.forEach((branch: any) => {
+      expect(branch.expectedThoughtNumber).toMatch(/^S\d+$/);
+    });
   });
 
   it('should include branch tree visualization in verbose mode', () => {

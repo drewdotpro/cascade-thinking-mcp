@@ -117,7 +117,7 @@ describe('CascadeThinkingServer - Branch State Clarity', () => {
 
       const data = JSON.parse(result.content[0].text) as CascadeThinkingResponse;
       expect(data.availableBranches).toBeDefined();
-      expect(data.availableBranches).toHaveLength(2);
+      expect(data.availableBranches).toHaveLength(3); // main + branch-1 + branch-2
       
       const branch1 = data.availableBranches?.find(b => b.branchId === 'branch-1');
       expect(branch1).toBeDefined();
@@ -337,8 +337,10 @@ describe('CascadeThinkingServer - Branch State Clarity', () => {
 
       const data = JSON.parse(result.content[0].text) as CascadeThinkingResponse;
       expect(data.currentBranch).toBe('main');
-      // availableBranches is only included when there are branches
-      expect(data.availableBranches).toBeUndefined();
+      // availableBranches now always includes main branch
+      expect(data.availableBranches).toBeDefined();
+      expect(data.availableBranches).toHaveLength(1); // Just main
+      expect(data.availableBranches?.[0].branchId).toBe('main');
     });
 
     it('should show full branch info in verbose mode', () => {
@@ -371,7 +373,7 @@ describe('CascadeThinkingServer - Branch State Clarity', () => {
       const data = JSON.parse(result.content[0].text) as CascadeThinkingResponse;
       expect(data.currentBranch).toBe('main');
       expect(data.availableBranches).toBeDefined();
-      expect(data.availableBranches).toHaveLength(1);
+      expect(data.availableBranches).toHaveLength(2); // main + test
       expect(data.branches).toBeDefined(); // Full branch metadata in verbose
       expect(data.branches?.test).toBeDefined();
     });

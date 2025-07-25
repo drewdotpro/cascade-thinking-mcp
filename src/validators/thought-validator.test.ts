@@ -332,4 +332,29 @@ describe('validateThoughtData', () => {
     // Undefined is ok
     expect(validateThoughtData(baseInput).responseMode).toBeUndefined();
   });
+
+  it('should validate thoughtNumber format when provided with switchToBranch', () => {
+    const baseInput = {
+      thought: 'Test',
+      switchToBranch: 'main',
+      totalThoughts: 1,
+      nextThoughtNeeded: false
+    };
+
+    // Test invalid type
+    expect(() => validateThoughtData({ ...baseInput, thoughtNumber: 123 as any }))
+      .toThrow('Invalid thoughtNumber: must be a string with S prefix');
+
+    // Test invalid format
+    expect(() => validateThoughtData({ ...baseInput, thoughtNumber: 'invalid' }))
+      .toThrow('Invalid thoughtNumber: must match pattern S{n} or s{n}');
+
+    // Test valid case
+    const result = validateThoughtData({ ...baseInput, thoughtNumber: 'S1' });
+    expect(result.thoughtNumber).toBe(1);
+
+    // Test missing thoughtNumber is OK with switchToBranch
+    const resultNoNumber = validateThoughtData(baseInput);
+    expect(resultNoNumber.thoughtNumber).toBe(0); // 0 indicates not provided
+  });
 });

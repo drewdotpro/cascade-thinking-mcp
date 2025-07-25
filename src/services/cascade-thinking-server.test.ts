@@ -186,10 +186,11 @@ describe('CascadeThinkingServer', () => {
       data = JSON.parse(branch2Result.content[0].text) as CascadeThinkingResponse;
       expect(data.activeBranches).toBe(1);  // Only 1 branch in this new sequence
       
-      // Check available branches shows both
+      // Check available branches shows main and both branches
       expect(data.availableBranches).toBeDefined();
-      expect(data.availableBranches).toHaveLength(2);
+      expect(data.availableBranches).toHaveLength(3); // main + branch-1 + branch-2
       const branchIds = data.availableBranches?.map(b => b.branchId) ?? [];
+      expect(branchIds).toContain('main');
       expect(branchIds).toContain('branch-1');
       expect(branchIds).toContain('branch-2');
     });

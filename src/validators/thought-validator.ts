@@ -10,11 +10,22 @@ export function validateThoughtData(input: unknown): ThoughtData {
   if (!data.thought || typeof data.thought !== "string") {
     throw new Error("Invalid thought: must be a string");
   }
-  if (!data.thoughtNumber || typeof data.thoughtNumber !== "string") {
-    throw new Error("Invalid thoughtNumber: must be a string with S prefix (e.g., 'S1', 'S2')");
-  }
-  if (!/^[Ss]\d+$/.test(data.thoughtNumber)) {
-    throw new Error("Invalid thoughtNumber: must match pattern S{n} or s{n} (e.g., 'S1', 's2', 'S3')");
+  // thoughtNumber is optional when switchToBranch is provided
+  if (data.switchToBranch === undefined) {
+    if (!data.thoughtNumber || typeof data.thoughtNumber !== "string") {
+      throw new Error("Invalid thoughtNumber: must be a string with S prefix (e.g., 'S1', 'S2')");
+    }
+    if (!/^[Ss]\d+$/.test(data.thoughtNumber)) {
+      throw new Error("Invalid thoughtNumber: must match pattern S{n} or s{n} (e.g., 'S1', 's2', 'S3')");
+    }
+  } else if (data.thoughtNumber !== undefined) {
+    // If provided with switchToBranch, still validate format
+    if (typeof data.thoughtNumber !== "string") {
+      throw new Error("Invalid thoughtNumber: must be a string with S prefix (e.g., 'S1', 'S2')");
+    }
+    if (!/^[Ss]\d+$/.test(data.thoughtNumber)) {
+      throw new Error("Invalid thoughtNumber: must match pattern S{n} or s{n} (e.g., 'S1', 's2', 'S3')");
+    }
   }
   if (data.totalThoughts === null || data.totalThoughts === undefined || typeof data.totalThoughts !== "number") {
     throw new Error("Invalid totalThoughts: must be a number");
@@ -119,7 +130,7 @@ export function validateThoughtData(input: unknown): ThoughtData {
 
   return {
     thought: data.thought,
-    thoughtNumber: parseInt(data.thoughtNumber.substring(1), 10), // Extract number from S/s prefix
+    thoughtNumber: data.thoughtNumber ? parseInt(data.thoughtNumber.substring(1), 10) : 0, // Extract number from S/s prefix, 0 if not provided
     totalThoughts: data.totalThoughts,
     nextThoughtNeeded: data.nextThoughtNeeded,
     isRevision: data.isRevision,

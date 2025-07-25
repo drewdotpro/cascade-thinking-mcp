@@ -15,7 +15,7 @@ describe('CASCADE_THINKING_TOOL', () => {
     const schema = CASCADE_THINKING_TOOL.inputSchema;
     
     expect(schema.type).toBe('object');
-    expect(schema.required).toEqual(['thought', 'nextThoughtNeeded', 'thoughtNumber', 'totalThoughts']);
+    expect(schema.required).toEqual(['thought', 'nextThoughtNeeded', 'totalThoughts']);
   });
 
   it('should define all expected properties', () => {
@@ -38,7 +38,7 @@ describe('CASCADE_THINKING_TOOL', () => {
     
     expect(properties.thoughtNumber).toEqual({
       type: 'string',
-      description: 'Current thought number with S prefix (e.g., \'S1\', \'S2\', \'S3\')',
+      description: 'Current thought number with S prefix (e.g., \'S1\', \'S2\', \'S3\'). Optional when switchToBranch is provided - will be auto-calculated.',
       pattern: '^S\\d+$'
     });
     

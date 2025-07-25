@@ -71,6 +71,7 @@ export interface CascadeThinkingResponse {
     description?: string;
     thoughtCount: number;
     fromThought: string;  // A-prefixed reference
+    expectedThoughtNumber: string;  // S-prefixed next thought number for this branch
   }[];
   needsMoreThoughts?: boolean;  // Indicates if totalThoughts was increased due to needsMoreThoughts
   adjustedTotalThoughts?: number;  // The new total after adjustment (if needsMoreThoughts was true)
